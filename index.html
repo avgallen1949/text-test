@@ -12,12 +12,22 @@
 	myRec.continuous = true;
 	myRec.interimResults = true; 
 
-	function setup()
-	{
+  function setup()
+{
     createCanvas(windowWidth, windowHeight);
-		myRec.onResult = showResult; 
-		myRec.start();
-	}
+        if('webkitSpeechRecognition' in window) {
+        console.log('Speech Recognition API available');
+    } else {
+        console.log('Speech Recognition API NOT available');
+    }
+    
+    myRec.onResult = showResult;
+    myRec.onStart = () => console.log('Speech rec started');
+    myRec.onError = (e) => console.log('Speech rec error:', e);
+    myRec.onEnd = () => console.log('Speech rec ended');
+    
+    myRec.start();
+}
 
 	function showResult() {
 		let transcriptDiv = document.getElementById('transcript');
