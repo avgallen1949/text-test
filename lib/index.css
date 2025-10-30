@@ -1,0 +1,25 @@
+@font-face {
+      font-family: 'Aesthete';
+      src: url("./aesthete.ttf") format("truetype");
+      }
+
+* {
+    margin: 0;
+    background-color: black;
+    color: white;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#transcript {
+    font-family: 'Aesthete', Arial;
+    width: 80vw;
+    height: auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 100px;
+    text-align: center;
+}

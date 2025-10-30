@@ -1,0 +1,122 @@
+<html>
+<head>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.4.5/p5.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.4.5/addons/p5.dom.js"></script>
+	<script src="./lib/p5.speech.js"></script>
+	<link rel="stylesheet" href="./lib/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/opentype.js@latest/dist/opentype.min.js"></script>
+	<script>
+
+	var myRec = new p5.SpeechRec();
+	myRec.continuous = true;
+	myRec.interimResults = true; 
+
+	function setup()
+	{
+		createCanvas(windowWidth, windowHeight);
+		myRec.onResult = showResult; 
+		myRec.start();
+	}
+
+	function showResult() {
+		let transcriptDiv = document.getElementById('transcript');
+		transcriptDiv.textContent = myRec.resultString;
+		console.log(myRec.resultString);
+	}
+</script>
+</head>
+<body>
+	<div id="transcript" class="reactive-text"></div>
+
+<script>
+  let audioContext;
+  let analyser;
+  let dataArray;
+  let currentWeight = 100;
+
+  const reactiveElements = document.querySelectorAll('.reactive-text');
+  const audioElement = document.getElementById('backgroundAudio');
+  const noisyBtn = document.getElementById('noisyBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+
+  window.addEventListener('load', initMicrophone);
+
+  async function initMicrophone() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
+        }
+      });
+      
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0.18;
+      const bufferLength = analyser.frequencyBinCount;
+      dataArray = new Uint8Array(bufferLength);
+      
+      const micSource = audioContext.createMediaStreamSource(stream);
+      micSource.connect(analyser);
+      
+      console.log('Microphone listening');
+      analyzeAudio();
+      
+    } catch (error) {
+      console.error('Microphone access denied:', error);
+    }
+  }
+
+  noisyBtn.addEventListener('click', () => {
+    audioElement.play()
+      .then(() => {
+        console.log('Audio playing');
+        noisyBtn.style.textDecoration = 'underline';
+        pauseBtn.style.textDecoration = 'none';
+      })
+      .catch(e => {
+        console.error('Play failed:', e);
+      });
+  });
+
+  pauseBtn.addEventListener('click', () => {
+    audioElement.pause();
+    pauseBtn.style.textDecoration = 'underline';
+    noisyBtn.style.textDecoration = 'none';
+  });
+
+  function analyzeAudio() {
+    if (dataArray) {
+      analyser.getByteFrequencyData(dataArray);
+      
+      const overall = dataArray.reduce((a, b) => a + b) / dataArray.length;
+      const normalized = overall / 255;
+      
+      let weight;
+      
+      if (normalized < 0.07) {
+        const stageNormalized = normalized / 0.07; 
+        weight = Math.round(100 + (stageNormalized * 700));
+      } else if (normalized < 0.10) {
+        const stageNormalized = (normalized - 0.08) / 0.10;
+        weight = Math.round(250 + (stageNormalized * 900));
+      } else {
+        const stageNormalized = (normalized - 0.20) / 0.80;
+        const curved = Math.pow(stageNormalized, 0.4);
+        weight = Math.round(600 + (curved * 1300));
+      }
+      
+      currentWeight = weight;
+      
+      reactiveElements.forEach(element => {
+        element.style.fontVariationSettings = `'wght' ${currentWeight}`;
+      });
+    }
+    
+    requestAnimationFrame(analyzeAudio);
+  }
+</script>
+</body>
+</html>
