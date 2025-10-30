@@ -35,9 +35,6 @@
   let currentWeight = 100;
 
   const reactiveElements = document.querySelectorAll('.reactive-text');
-  const audioElement = document.getElementById('backgroundAudio');
-  const noisyBtn = document.getElementById('noisyBtn');
-  const pauseBtn = document.getElementById('pauseBtn');
 
   window.addEventListener('load', initMicrophone);
 
@@ -69,24 +66,6 @@
     }
   }
 
-  noisyBtn.addEventListener('click', () => {
-    audioElement.play()
-      .then(() => {
-        console.log('Audio playing');
-        noisyBtn.style.textDecoration = 'underline';
-        pauseBtn.style.textDecoration = 'none';
-      })
-      .catch(e => {
-        console.error('Play failed:', e);
-      });
-  });
-
-  pauseBtn.addEventListener('click', () => {
-    audioElement.pause();
-    pauseBtn.style.textDecoration = 'underline';
-    noisyBtn.style.textDecoration = 'none';
-  });
-
   function analyzeAudio() {
     if (dataArray) {
       analyser.getByteFrequencyData(dataArray);
@@ -114,7 +93,6 @@
         element.style.fontVariationSettings = `'wght' ${currentWeight}`;
       });
     }
-    
     requestAnimationFrame(analyzeAudio);
   }
 </script>
